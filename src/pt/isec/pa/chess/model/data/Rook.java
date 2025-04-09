@@ -6,39 +6,14 @@ import java.util.List;
 public class Rook extends Piece {
 
     public Rook(boolean isWhite, int col, int row) { super(isWhite, col, row); }
+    public Rook(boolean isWhite, int col, int row, boolean hasMoved) { super(isWhite, col, row, hasMoved);}
+
 
     @Override
-    public List<int[]> getPossibleMoves(Board board) {
-        List<int[]> moves = new ArrayList<>();
-
-        //todos os movimentos da rainha
-        int[][] directions = {
+    protected int[][] getDirections() {
+        return new int[][]{
                 {-1, 0}, {1, 0}, {0, -1}, {0, 1}
         };
-
-        for (int[] dir : directions) {
-            int newCol = col;
-            int newRow = row;
-
-            while(true){
-                newCol += dir[0];
-                newRow += dir[1];
-
-                if (!isValidMove(board, newCol, newRow)) {
-                    break;
-                }
-
-                moves.add(new int[]{newCol, newRow});
-
-                //caso encontre uma peça nao vai para alem dela
-                if(board.getPiece(newCol, newRow) != null){
-                    break;
-                }
-
-            }
-        }
-
-        return moves;
     }
 
     @Override
