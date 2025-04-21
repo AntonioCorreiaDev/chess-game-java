@@ -104,25 +104,4 @@ public abstract class Piece implements Serializable {
 
         return true;
     }
-    /*
-    private List<int[]> getKnightMoves(Board board) {
-        List<int[]> moves = new ArrayList<>();
-
-        int[][] knightMoves = {
-                {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
-                {1, -2}, {1, 2}, {2, -1}, {2, 1}
-        };
-
-        for (int[] move : knightMoves) {
-            int newCol = col + move[0];
-            int newRow = row + move[1];
-
-            if (isValidMove(board, newCol, newRow)) {
-                moves.add(new int[]{newCol, newRow});
-            }
-        }
-
-        return moves;
-    }
-    */
 }
