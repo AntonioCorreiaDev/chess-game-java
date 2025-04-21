@@ -62,14 +62,6 @@ public abstract class Piece implements Serializable {
         List<int[]> moves = new ArrayList<>();
         int [][] directions = getDirections();
 
-        if(directions == null){
-            if(this instanceof Pawn)
-                moves.addAll(getPawnMoves(board));
-            else if(this instanceof Knight)
-                moves.addAll(getKnightMoves(board));
-            else if(this instanceof King)
-                moves.addAll(getKingMoves(board));
-        }else{
             for (int[] dir : directions) {
                 int newCol = col;
                 int newRow = row;
@@ -88,7 +80,6 @@ public abstract class Piece implements Serializable {
                     }
                 }
             }
-        }
         return moves;
     }
     public abstract String getSymbol();
@@ -113,49 +104,7 @@ public abstract class Piece implements Serializable {
 
         return true;
     }
-
-    private List<int[]> getKingMoves(Board board) {
-        List<int[]> moves = new ArrayList<>();
-        int[][] kingDirections = {
-                {-1, -1}, {-1, 0}, {-1, 1},
-                {0, -1},           {0, 1},
-                {1, -1},  {1, 0},  {1, 1}
-        };
-
-        for (int[] dir : kingDirections) {
-            int newCol = col + dir[0];
-            int newRow = row + dir[1];
-
-            // Verifica se o movimento é válido E se a casa de destino não está sob ataque
-            if (isValidMove(board, newCol, newRow) &&
-                    !board.isSquareUnderAttack(newCol, newRow, !isWhite)) {
-                moves.add(new int[]{newCol, newRow});
-            }
-        }
-
-        return moves;
-    }
-
-    private List<int[]> getPawnMoves(Board board) {
-        List<int[]> moves = new ArrayList<>();
-        int direction = isWhite ? 1 : -1;
-
-        // Avançar uma casa
-        int newRow = row + direction;
-        if (board.isValidPosition(col, newRow) && board.getPiece(col, newRow) == null) {
-            moves.add(new int[]{col, newRow});
-
-            // Avançar duas casas, se for a primeira jogada
-            if (!hasMoved) {
-                int doubleRow = row + (2 * direction);
-                if (board.isValidPosition(col, doubleRow) && board.getPiece(col, doubleRow) == null) {
-                    moves.add(new int[]{col, doubleRow});
-                }
-            }
-        }
-        return moves;
-    }
-
+    /*
     private List<int[]> getKnightMoves(Board board) {
         List<int[]> moves = new ArrayList<>();
 
@@ -175,4 +124,5 @@ public abstract class Piece implements Serializable {
 
         return moves;
     }
+    */
 }

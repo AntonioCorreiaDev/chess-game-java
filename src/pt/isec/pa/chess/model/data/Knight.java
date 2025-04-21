@@ -13,7 +13,10 @@ public class Knight extends Piece {
 
     @Override
     protected int[][] getDirections() {
-        return null;
+        return new int[][]{
+                {-2, -1}, {-2, 1}, {-1, -2}, {-1, 2},
+                {1, -2}, {1, 2}, {2, -1}, {2, 1}
+        };
     }
 
     @Override

@@ -14,6 +14,27 @@ public class Pawn extends Piece {
     }
 
     @Override
+    public List<int[]> getPossibleMoves(Board board) {
+        List<int[]> moves = new ArrayList<>();
+        int direction = isWhite ? 1 : -1;
+
+        // Avançar uma casa
+        int newRow = row + direction;
+        if (board.isValidPosition(col, newRow) && board.getPiece(col, newRow) == null) {
+            moves.add(new int[]{col, newRow});
+
+            // Avançar duas casas, se for a primeira jogada
+            if (!hasMoved) {
+                int doubleRow = row + (2 * direction);
+                if (board.isValidPosition(col, doubleRow) && board.getPiece(col, doubleRow) == null) {
+                    moves.add(new int[]{col, doubleRow});
+                }
+            }
+        }
+        return moves;
+    }
+
+    @Override
     public String getSymbol() {
         return isWhite ? "P" : "p";
     }

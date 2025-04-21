@@ -10,7 +10,11 @@ public class King extends Piece {
 
     @Override
     protected int[][] getDirections() {
-        return null;
+        return new int[][]{
+                {-1, -1}, {-1, 0}, {-1, 1},
+                {0, -1},           {0, 1},
+                {1, -1},  {1, 0},  {1, 1}
+        };
     }
 
     @Override
