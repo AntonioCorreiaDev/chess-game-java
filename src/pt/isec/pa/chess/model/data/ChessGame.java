@@ -1,6 +1,7 @@
-package pt.isec.pa.chess;
+package pt.isec.pa.chess.model.data;
 
-import pt.isec.pa.chess.model.data.*;
+import javafx.application.Application;
+import pt.isec.pa.chess.ui.MainJFX;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -13,10 +14,18 @@ public class ChessGame implements Serializable {
 
     boolean isWhiteTurn;
     Board board;
+    String player1, player2;
 
     public ChessGame(){
         isWhiteTurn = true;
         board = new Board();
+    }
+
+    public void setPlayersNames(String n1, String n2){
+        player1 = n1;
+        player2 = n2;
+        System.out.println(player1);
+        System.out.print(player2);
     }
 
     public ChessGame(String gameState) {
@@ -143,10 +152,5 @@ public class ChessGame implements Serializable {
 
     public static void main(String[] args) {
 
-        ChessGame chessGame = new ChessGame();
-        chessGame.importCsv("teste.csv");
-        chessGame.executeMove(3, 3, 3, 2);
-        chessGame.executeMove(7, 6, 3, 6);
-        //System.out.println(chessGame.getQueryState());
     }
 }

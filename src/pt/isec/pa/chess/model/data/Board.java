@@ -129,7 +129,7 @@ public class Board implements Serializable{
                 }
             }
         }
-        return null; // à partida nunca chega aqui
+        return null;
     }
 
     public boolean isSquareUnderAttack(int targetCol, int targetRow, boolean byWhite) {

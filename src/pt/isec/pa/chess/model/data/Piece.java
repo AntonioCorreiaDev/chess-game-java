@@ -82,6 +82,7 @@ public abstract class Piece implements Serializable {
             }
         return moves;
     }
+
     public abstract String getSymbol();
     protected abstract int[][] getDirections();
 

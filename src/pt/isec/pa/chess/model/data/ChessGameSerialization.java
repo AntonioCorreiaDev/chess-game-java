@@ -1,5 +1,4 @@
 package pt.isec.pa.chess.model.data;
-import pt.isec.pa.chess.ChessGame;
 import java.io.*;
 
 public class ChessGameSerialization {
