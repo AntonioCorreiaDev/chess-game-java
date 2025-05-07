@@ -76,6 +76,8 @@ public enum PieceType {
         if (representation == null || (representation.length() != 3 && representation.length() != 4))
             throw new IllegalArgumentException("Invalid representation: " + representation);
 
+        representation = representation.trim();
+
         char pieceChar = representation.charAt(0);
         char colChar = representation.charAt(1);
         int rowChar = Character.getNumericValue(representation.charAt(2));

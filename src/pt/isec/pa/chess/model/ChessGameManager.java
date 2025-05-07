@@ -3,6 +3,7 @@ package pt.isec.pa.chess.model;
 import pt.isec.pa.chess.model.data.ChessGame;
 
 import java.io.IOException;
+import java.util.List;
 
 public class ChessGameManager {
 
@@ -17,22 +18,33 @@ public class ChessGameManager {
         this.chessGame = new ChessGame(filePath);
     }
 
-    public boolean movePiece(String from, String to) {
-        if (from.length() != 2 || to.length() != 2 || from.charAt(0) < 'a' || from.charAt(0) > 'h') {
-            throw new IllegalArgumentException("Coordenadas inválidas: " + from + " -> " + to);
-        }
-
-        int startCol = from.charAt(0) - 'a';
-        int startRow = 8 - Character.getNumericValue(from.charAt(1));
-
-        int endCol = to.charAt(0) - 'a';
-        int endRow = 8 - Character.getNumericValue(to.charAt(1));
-
-        return chessGame.executeMove(startCol, startRow, endCol, endRow);
+    public boolean movePieceCoordinates(int startCol, int startRow, int endCol, int endRow) {
+        return chessGame.executeMove(endCol, endRow, startCol, startRow);
     }
 
     public String getCurrentPlayer() {
         return chessGame.getCurrentPlayer();
+    }
+
+    public String getPlayer1() {
+        return chessGame.getPlayer1();
+    }
+
+    public String getPlayer2() {
+        return chessGame.getPlayer2();
+    }
+
+    public String getWinner() {
+        if (chessGame.getWinner() == 0) {
+            return "WHITE";
+        }else if (chessGame.getWinner() == 1) {
+            return "BLACK";
+        }
+        return null;
+    }
+
+    public List<int[]> getValidMoves(int col, int row) {
+        return chessGame.getValidMoves(col, row);
     }
 
     public String getGameState() {
@@ -67,4 +79,6 @@ public class ChessGameManager {
     public void importGameCsv(String filePath) {
         chessGame.importCsv(filePath);
     }
+    public int getBoardSize(){return chessGame.getBoardSize();}
+    public String getPieceImageString(int row, int col){return chessGame.getPieceImageString(row, col);}
 }

@@ -20,4 +20,9 @@ public class Rook extends Piece {
     public String getSymbol() {
         return isWhite ? "R" : "r";
     }
+
+    @Override
+    public String getType() {
+        return "rook";
+    }
 }

@@ -20,7 +20,30 @@ public class Knight extends Piece {
     }
 
     @Override
+    public List<int[]> getPossibleMoves(Board board) {
+        List<int[]> moves = new ArrayList<>();
+
+        int[][] knightDirections = getDirections();
+
+        for (int[] dir : knightDirections) {
+            int newCol = col + dir[0];
+            int newRow = row + dir[1];
+
+            if (isValidMove(board, newCol, newRow)) {
+                moves.add(new int[]{newCol, newRow});
+            }
+        }
+
+        return moves;
+    }
+
+    @Override
     public String getSymbol() {
         return isWhite ? "N" : "n";
+    }
+
+    @Override
+    public String getType() {
+        return "knight";
     }
 }

@@ -38,5 +38,10 @@ public class Pawn extends Piece {
     public String getSymbol() {
         return isWhite ? "P" : "p";
     }
+
+    @Override
+    public String getType() {
+        return "pawn";
+    }
 }
 

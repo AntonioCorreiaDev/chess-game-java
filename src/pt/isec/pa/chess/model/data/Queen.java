@@ -23,4 +23,10 @@ public class Queen extends Piece {
     public String getSymbol() {
         return isWhite ? "Q" : "q";
     }
+
+    @Override
+    public String getType() {
+        return "queen";
+    }
+
 }

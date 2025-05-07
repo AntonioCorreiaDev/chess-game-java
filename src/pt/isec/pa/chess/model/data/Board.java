@@ -2,6 +2,7 @@ package pt.isec.pa.chess.model.data;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Board implements Serializable{
@@ -14,7 +15,9 @@ public class Board implements Serializable{
         board = new Piece[BOARD_SIZE][BOARD_SIZE];
         setupInitialPosition();
     }
-
+    public int getBoardSize(){
+        return BOARD_SIZE;
+    }
     public Board(List<String> pieces) {
         board = new Piece[BOARD_SIZE][BOARD_SIZE];
         for (String value : pieces) {
@@ -24,26 +27,26 @@ public class Board implements Serializable{
         }
     }
 
-        public Board(String boardState){
-            board = new Piece[BOARD_SIZE][BOARD_SIZE];
-            setupFromFile(boardState);
-        }
-        private void setupFromFile(String boardState){
-            String[] piecesAndPositions = boardState.split(",\\s*");
-            for (String pieceAndPosition : piecesAndPositions) {
-                String pieceStr = pieceAndPosition.substring(0, pieceAndPosition.length() - 2); // Remove o asterisco ou a parte da posição
-                String position = pieceAndPosition.substring(pieceAndPosition.length() - 2); // Posição da peça (ex: a5)
+    public Board(String boardState){
+        board = new Piece[BOARD_SIZE][BOARD_SIZE];
+        setupFromFile(boardState);
+    }
+    private void setupFromFile(String boardState){
+        String[] piecesAndPositions = boardState.split(",\\s*");
+        for (String pieceAndPosition : piecesAndPositions) {
+            String pieceStr = pieceAndPosition.substring(0, pieceAndPosition.length() - 2); // Remove o asterisco ou a parte da posição
+            String position = pieceAndPosition.substring(pieceAndPosition.length() - 2); // Posição da peça (ex: a5)
 
-                int row = BOARD_SIZE - (position.charAt(1) - '0');  // Calcula a linha (invertendo as coordenadas, pois o CSV usa o formato do tipo a1, b2...)
-                int col = position.charAt(0) - 'a';  // Calcula a coluna com base na letra
+            int row = BOARD_SIZE - (position.charAt(1) - '0');  // Calcula a linha (invertendo as coordenadas, pois o CSV usa o formato do tipo a1, b2...)
+            int col = position.charAt(0) - 'a';  // Calcula a coluna com base na letra
 
-                // Usa o PieceType.createPiece para criar a peça
-                Piece piece = PieceType.createPieceFromString(pieceStr + position);
-                if (piece != null) {
-                    board[row][col] = piece;  // Coloca a peça na posição correta
-                }
+            // Usa o PieceType.createPiece para criar a peça
+            Piece piece = PieceType.createPieceFromString(pieceStr + position);
+            if (piece != null) {
+                board[row][col] = piece;  // Coloca a peça na posição correta
             }
         }
+    }
 
     private void setupInitialPosition() {
 
@@ -88,6 +91,25 @@ public class Board implements Serializable{
             return board[row][col];
         }
         return null;
+    }
+
+    public List<int[]> getValidMoves(int col, int row, boolean isWhiteTurn) {
+        Piece piece = getPiece(col, row);
+        if (piece == null) {
+            return List.of(); // Se nao houver piecve
+        }
+        return piece.getPossibleMoves(this);
+    }
+
+
+    public String getPieceImageString(int row, int col){
+        Piece piece = getPiece(col, row);
+        StringBuilder sb = new StringBuilder();
+        if (piece != null){
+            sb.append(piece.getType());
+            sb.append(piece.getColorString());
+        }
+        return sb.toString();
     }
 
     public String getAllBoardText() {
@@ -152,6 +174,3 @@ public class Board implements Serializable{
         return false;
     }
 }
-
-
-

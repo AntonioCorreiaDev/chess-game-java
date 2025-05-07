@@ -46,6 +46,12 @@ public abstract class Piece implements Serializable {
         return isWhite;
     }
 
+    public String getColorString(){
+        if(isWhite)
+            return "W";
+        return "B";
+    }
+
     public boolean isWhite() {
         return isWhite;
     }
@@ -62,27 +68,28 @@ public abstract class Piece implements Serializable {
         List<int[]> moves = new ArrayList<>();
         int [][] directions = getDirections();
 
-            for (int[] dir : directions) {
-                int newCol = col;
-                int newRow = row;
+        for (int[] dir : directions) {
+            int newCol = col;
+            int newRow = row;
 
-                while (true) {
-                    newCol += dir[0];
-                    newRow += dir[1];
+            while (true) {
+                newCol += dir[0];
+                newRow += dir[1];
 
-                    if (!isValidMove(board, newCol, newRow)) {
-                        break;
-                    }
+                if (!isValidMove(board, newCol, newRow)) {
+                    break;
+                }
 
-                    moves.add(new int[]{newCol, newRow});
-                    if (board.getPiece(newCol, newRow) != null && !(board.getPiece(newCol, newRow) instanceof King)) {
-                        break;
-                    }
+                moves.add(new int[]{newCol, newRow});
+                if (board.getPiece(newCol, newRow) != null && !(board.getPiece(newCol, newRow) instanceof King)) {
+                    break;
                 }
             }
+        }
         return moves;
     }
 
+    public abstract String getType();
     public abstract String getSymbol();
     protected abstract int[][] getDirections();
 
@@ -100,7 +107,7 @@ public abstract class Piece implements Serializable {
 
         Piece pieceAtTarget = board.getPiece(toCol, toRow);
 
-        //impossivel comer peças da msm cor
+        //impossivel comer peÃ§as da msm cor
         if(pieceAtTarget != null && pieceAtTarget.getColor() == getColor()) return false;
 
         return true;

@@ -15,10 +15,24 @@ public class ChessGame implements Serializable {
     boolean isWhiteTurn;
     Board board;
     String player1, player2;
+    int winner = -1; // -1 sem winner, 0 winner é preto, 1 winner é branco
+
 
     public ChessGame(){
         isWhiteTurn = true;
         board = new Board();
+    }
+
+    public Piece getPiece(int row, int col){
+        return board.getPiece(row, col);
+    }
+
+    public String getPieceImageString(int row, int col){
+        return board.getPieceImageString(row, col);
+    }
+
+    public int getBoardSize(){
+        return board.getBoardSize();
     }
 
     public void setPlayersNames(String n1, String n2){
@@ -26,6 +40,22 @@ public class ChessGame implements Serializable {
         player2 = n2;
         System.out.println(player1);
         System.out.print(player2);
+    }
+
+    public String getPlayer1(){
+        return player1;
+    }
+
+    public String getPlayer2(){
+        return player2;
+    }
+
+    public int getWinner(){
+        return winner;
+    }
+
+    public List<int[]> getValidMoves(int col, int row) {
+        return board.getValidMoves(col, row, isWhiteTurn);
     }
 
     public ChessGame(String gameState) {
@@ -36,6 +66,7 @@ public class ChessGame implements Serializable {
         board = new Board();
         isWhiteTurn = true;
     }
+
 
     public String getCurrentPlayer(){
         if (isWhiteTurn) return "WHITE";
@@ -69,32 +100,38 @@ public class ChessGame implements Serializable {
         }
     }
 
-    public void importCsv(String filename){
+    public void importCsv(String filename) {
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
-            String line = reader.readLine(); // PRIMEIRA LINHA -> jogador atual
-            if (line == null)
-                throw new IOException("Ficheiro CSV vazio");
+            StringBuilder fullText = new StringBuilder();
+            String line;
 
-            this.isWhiteTurn = line.startsWith("WHITE");
-            List<String> pieces = new ArrayList<>();
 
             while ((line = reader.readLine()) != null) {
-                if (line.isBlank())
-                    continue;
+                fullText.append(line.trim()).append(" ");
+            }
 
-                String[] parts = line.split(", "); // cada peça está separada por espaço
-                for (String pieceStr : parts) {
-                    pieces.add(pieceStr);
+            String[] parts = fullText.toString().trim().split(",");
+
+            if (parts.length == 0)
+                throw new IOException("Ficheiro CSV vazio ou inválido.");
+
+            String currentPlayer = parts[0].trim().toUpperCase();
+            this.isWhiteTurn = currentPlayer.startsWith("WHITE");
+
+            List<String> pieces = new ArrayList<>();
+            for (int i = 1; i < parts.length; i++) {
+                String piece = parts[i].trim();
+                if (!piece.isEmpty()) {
+                    pieces.add(piece);
                 }
             }
 
-            // Cria um novo board vazio
             this.board = new Board(pieces);
         } catch (IOException e) {
             System.err.println("Erro ao importar o estado do jogo: " + e.getMessage());
         }
-
     }
+
 
     public boolean isCheckMate(boolean isWhite) {
         System.out.println("procurando o rei" + (isWhite ? "WHITE" : "BLACK"));
@@ -114,11 +151,22 @@ public class ChessGame implements Serializable {
             System.out.print(Arrays.toString(move) + " ");
         }
 
-        return kingMoves.isEmpty();// Xeque-mate
+        if(kingMoves.isEmpty()){// Xeque-mate
+            if(isWhite){
+                winner = 0;
+            }
+            winner = 1;
+            return true;
+        }
+        return false;
     }
 
     public boolean executeMove(int startCol, int startRow, int endCol, int endRow) {
+        System.out.printf("Start col %d, start row %d, end col %d, end row %d\n", startCol, startRow, endCol, endRow);
+        //System.out.println("Entrou aquui");
         Piece piece = board.getPiece(startCol, startRow);
+        String pieceS = board.getPieceImageString(startRow, startCol);
+        System.out.printf("no execute move %s\n",pieceS);
         if(piece == null){
             System.out.println("Nao existe nada nessa posicao!");
             return false;
@@ -127,19 +175,28 @@ public class ChessGame implements Serializable {
             System.out.println("Peca do adversario, impossivel mover!");
             return false;
         }
-        System.out.println(piece.getString());
-        List<int[]> possibleMoves = piece.getPossibleMoves(board);
-        System.out.print("Teste: ");
-        for (int[] move : possibleMoves) {
-            System.out.print(Arrays.toString(move) + " ");
-        }
-        System.out.println();
 
+        List<int[]> possibleMoves = piece.getPossibleMoves(board);
+        boolean isValidMove = false;
+        for (int[] move : possibleMoves) {
+            if (move[0] == endCol && move[1] == endRow) {
+                isValidMove = true;
+                break;
+            }
+        }
+
+        if (!isValidMove) {
+            System.out.println("Movimento inválido para esta peça.");
+            return false;
+        }
+
+        System.out.println();
         board.removePiece(startCol, startRow);
         piece.setPosition(endCol, endRow);
         board.setPiece(piece, endCol, endRow);
         System.out.print(piece.getCol() + " " +piece.getRow());
         if (isCheckMate(!isWhiteTurn)) {
+            System.out.println("Chegou aqui 227");
             System.out.println("XEQUE-MATE! Vencedor: " + (isWhiteTurn ? "WHITE" : "BLACK"));
             return true;
         }
@@ -147,7 +204,7 @@ public class ChessGame implements Serializable {
         isWhiteTurn = !isWhiteTurn;
         System.out.println(getQueryState());
 
-        return false;
+        return true;
     }
 
     public static void main(String[] args) {

@@ -21,4 +21,9 @@ public class Bishop extends Piece {
         return isWhite ? "B" : "b";
     }
 
+    @Override
+    public String getType() {
+        return "bishop";
+    }
+
 }
