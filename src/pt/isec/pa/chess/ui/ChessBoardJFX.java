@@ -3,8 +3,10 @@ package pt.isec.pa.chess.ui;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import pt.isec.pa.chess.model.ChessGameManager;
+import pt.isec.pa.chess.model.data.ModelLog;
 import pt.isec.pa.chess.ui.res.ImageManager;
 
 import java.util.List;
@@ -17,43 +19,48 @@ public class ChessBoardJFX extends Canvas {
     private final ChessGameManager chessGame;
     private PlayersInfoPane infoPane;
     private int[] selectedPosition = null;
+    String pieceShow;
+    boolean check = false;
 
 
     public ChessBoardJFX(ChessGameManager game) {
-        super(game.getBoardSize() * SQUARE_SIZE + 2 * MARGIN,
-                game.getBoardSize() * SQUARE_SIZE + 2 * MARGIN);
         this.chessGame = game;
-        createViews();
+
+        setWidth(400);
+        setHeight(400);
+
+        widthProperty().addListener((_, _, _) -> update());
+        heightProperty().addListener((_, _, _) -> update());
+
         registerHandlers();
         update();
+
     }
+
 
     public void setPlayersInfoPane(PlayersInfoPane infoPane) {
         this.infoPane = infoPane;
     }
 
     private int[] getBoardPosition(double x, double y) {
+        int size = chessGame.getBoardSize();
+        double boardWidth = getWidth() - 2 * MARGIN;
+        double boardHeight = getHeight() - 2 * MARGIN;
+        double squareSize = Math.min(boardWidth, boardHeight) / size;
+
         x -= MARGIN;
         y -= MARGIN;
 
         if (x < 0 || y < 0) return null;
 
-        int col = (int)(x / SQUARE_SIZE);
-        int row = (int)(y / SQUARE_SIZE);
+        int col = (int)(x / squareSize);
+        int row = (int)(y / squareSize);
 
-        if (col >= chessGame.getBoardSize() || row >= chessGame.getBoardSize())
+        if (col >= size || row >= size)
             return null;
 
-        int invertedRow = chessGame.getBoardSize() - 1 - row; // inverter coordenada Y
+        int invertedRow = size - 1 - row; // inverter coordenada Y
         return new int[] {invertedRow, col};
-    }
-
-
-    private void createViews() {
-        drawBoard();
-        if(infoPane != null) {
-            infoPane.update();
-        }
     }
 
     private void registerHandlers() {
@@ -64,23 +71,32 @@ public class ChessBoardJFX extends Canvas {
             System.out.println("Selecionada peça: " + x + ", " + y);
             handleClick(x, y);
         });
+
+        chessGame.addPropertyChangeListener(ChessGameManager.BOARD_STATE, evt -> {
+            update();
+        });
+
     }
 
     public void update() {
-        drawBoard();
-    }
-
-    private void drawBoard() {
-        System.out.println("Aqui");
         GraphicsContext gc = getGraphicsContext2D();
+        double canvasWidth = getWidth();
+        double canvasHeight = getHeight();
+
         int size = chessGame.getBoardSize();
+        double boardWidth = canvasWidth - 2 * MARGIN;
+        double boardHeight = canvasHeight - 2 * MARGIN;
+        double squareSize = Math.min(boardWidth, boardHeight) / size;
+
+        gc.setFill(Color.WHITESMOKE);
+        gc.fillRect(0, 0, canvasWidth, canvasHeight);
 
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
                 boolean isLight = (row + col) % 2 == 0;
                 gc.setFill(isLight ? Color.BEIGE : Color.SADDLEBROWN);
-                gc.fillRect(MARGIN + col * SQUARE_SIZE, MARGIN + row * SQUARE_SIZE,
-                        SQUARE_SIZE, SQUARE_SIZE);
+                gc.fillRect(MARGIN + col * squareSize, MARGIN + row * squareSize,
+                        squareSize, squareSize);
 
 
                 int invertedRow = size - 1 - row; // pq a nossa 0,0 é o canto inferior esquerdo
@@ -90,9 +106,9 @@ public class ChessBoardJFX extends Canvas {
                     Image image = ImageManager.getImage(filename);
                     if (image != null) {
                         gc.drawImage(image,
-                                MARGIN + col * SQUARE_SIZE,
-                                MARGIN + row * SQUARE_SIZE,
-                                SQUARE_SIZE, SQUARE_SIZE);
+                                MARGIN + col * squareSize,
+                                MARGIN + row * squareSize,
+                                squareSize, squareSize);
                     }
                 }
             }
@@ -103,44 +119,50 @@ public class ChessBoardJFX extends Canvas {
             int selRow = size - 1 - selectedPosition[0]; // converter para coordenada de desenho
             int selCol = selectedPosition[1];
 
-            gc.setFill(new Color(1, 0, 0, 0.3)); // vermelho transparente
+            if(check) {
+                gc.setFill(new Color(0.5, 0.5, 0.5, 0.3));
+            }else{
+                gc.setFill(new Color(1.0, 0.0, 0.0, 0.3));
+            }
             gc.fillRect(
-                    MARGIN + selCol * SQUARE_SIZE,
-                    MARGIN + selRow * SQUARE_SIZE,
-                    SQUARE_SIZE,
-                    SQUARE_SIZE
+                    MARGIN + selCol * squareSize,
+                    MARGIN + selRow * squareSize,
+                    squareSize,
+                    squareSize
             );
 
-            gc.setStroke(Color.RED);
+            gc.setStroke(Color.GREY);
             gc.setLineWidth(3);
             gc.strokeRect(
-                    MARGIN + selCol * SQUARE_SIZE,
-                    MARGIN + selRow * SQUARE_SIZE,
-                    SQUARE_SIZE,
-                    SQUARE_SIZE
+                    MARGIN + selCol * squareSize,
+                    MARGIN + selRow * squareSize,
+                    squareSize,
+                    squareSize
             );
 
-            List<int[]> validMoves = chessGame.getValidMoves(selectedPosition[1], selectedPosition[0]);
-            //System.out.printf("\npeça em: " + selectedPosition[1] + ", " + selectedPosition[0] + "\n");
-            for (int[] move : validMoves) {
-                //System.out.printf("-> [%d, %d]%n", move[0], move[1]);
-                int moveCol = move[0];
-                int moveRow = size - 1 - move[1]; // inverter para coordenadas certas do tabuleiro no ecra
+            if(check){
+                List<int[]> validMoves = chessGame.getValidMoves(selectedPosition[1], selectedPosition[0]);
+                //System.out.printf("\npeça em: " + selectedPosition[1] + ", " + selectedPosition[0] + "\n");
+                for (int[] move : validMoves) {
+                    //System.out.printf("-> [%d, %d]%n", move[0], move[1]);
+                    int moveCol = move[0];
+                    int moveRow = size - 1 - move[1]; // inverter para coordenadas certas do tabuleiro no ecra
 
-                gc.setFill(new Color(0, 1, 0, 0.3)); // verde transparente
-                gc.fillRect(MARGIN + moveCol * SQUARE_SIZE, MARGIN + moveRow * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+                    gc.setFill(new Color(0, 1, 0, 0.3)); // verde transparente
+                    gc.fillRect(MARGIN + moveCol * squareSize, MARGIN + moveRow * squareSize, squareSize, squareSize);
 
-                gc.setStroke(Color.GREEN);
-                gc.setLineWidth(2);
-                gc.strokeRect(MARGIN + moveCol * SQUARE_SIZE, MARGIN + moveRow * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE);
+                    gc.setStroke(Color.GREEN);
+                    gc.setLineWidth(2);
+                    gc.strokeRect(MARGIN + moveCol * squareSize, MARGIN + moveRow * squareSize, squareSize, squareSize);
+                }
             }
         }
 
         for (int col = 0; col < size; col++) {
             String letter = String.valueOf((char) ('a' + col));
-            double x = MARGIN + col * SQUARE_SIZE + SQUARE_SIZE / 2 - 4;
+            double x = MARGIN + col * squareSize + squareSize / 2 - 4;
             double yTop = MARGIN - 5;
-            double yBottom = MARGIN + size * SQUARE_SIZE + 15;
+            double yBottom = MARGIN + size * squareSize + 15;
 
             gc.setFill(Color.BLACK);
             gc.fillText(letter, x, yTop);
@@ -149,9 +171,9 @@ public class ChessBoardJFX extends Canvas {
 
         for (int row = 0; row < size; row++) {
             String number = String.valueOf(8 - row);
-            double y =MARGIN + row * SQUARE_SIZE + SQUARE_SIZE / 2 + 5;
+            double y =MARGIN + row * squareSize  + squareSize  / 2 + 5;
             double xLeft = MARGIN - 15;
-            double xRight = MARGIN + size * SQUARE_SIZE + 5;
+            double xRight = MARGIN + size * squareSize + 5;
 
             gc.setFill(Color.BLACK);
             gc.fillText(number, xLeft, y);
@@ -169,30 +191,35 @@ public class ChessBoardJFX extends Canvas {
 
         int row = pos[0], col = pos[1];
         //System.out.printf("Clicou em linha %d, coluna %d%n", row, col);
-
+        check = chessGame.checkPiece(col, row);
         String piece = chessGame.getPieceImageString(row, col);
 
         if (selectedPosition == null) {
             if (piece != null && !piece.isBlank()) {
                 selectedPosition = pos;
                 //System.out.printf("Selecionada %s em [%d,%d]%n", piece,row, col);
-
+                pieceShow = piece;
                 update();
             }
         } else {
             boolean moved = chessGame.movePieceCoordinates(col, row, selectedPosition[1], selectedPosition[0]);
             if (moved) {
-                System.out.printf("Movida de [%d,%d] para [%d,%d]%n",
-                        selectedPosition[0], selectedPosition[1], row, col);
+                String logMsg = String.format(
+                        "%s de [%d,%d]->[%d,%d]",
+                        pieceShow, selectedPosition[0], selectedPosition[1], row, col
+                );
+                ModelLog.getInstance().log(logMsg); // ⬅️ LOG AQUI
             } else {
-                System.out.printf("Movimento inválido de [%d,%d] para [%d,%d]%n",
-                        selectedPosition[0], selectedPosition[1], row, col);
+                String logMsg = String.format(
+                        "Movimento inválido de [%d,%d] para [%d,%d]",
+                        selectedPosition[0], selectedPosition[1], row, col
+                );
+                ModelLog.getInstance().log(logMsg);
             }
             selectedPosition = null;
-            update();
-            infoPane.update();
+            pieceShow = null;
+            //update();
+            //infoPane.update();
         }
     }
 }
-
-

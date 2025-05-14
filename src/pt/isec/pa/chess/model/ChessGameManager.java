@@ -1,7 +1,10 @@
 package pt.isec.pa.chess.model;
 
 import pt.isec.pa.chess.model.data.ChessGame;
+import pt.isec.pa.chess.model.data.ChessGameSerialization;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.util.List;
 
@@ -9,17 +12,38 @@ public class ChessGameManager {
 
 
     private ChessGame chessGame;
+    PropertyChangeSupport pcs;
+
+    public static final String BOARD_STATE = "board_state";
+    public static final String CURRENT_PLAYER = "current_player";
 
     public ChessGameManager() {
         this.chessGame = new ChessGame();
+        pcs = new PropertyChangeSupport(this);
     }
 
+    public void addPropertyChangeListener(String property, PropertyChangeListener listener){
+        pcs.addPropertyChangeListener(property, listener);
+    }
+    //sempre q alterar um valor no modelo de dados
+    // fazer o pcs.firePropertyChange(valor a alterar, antigo, modelo para ir buscar o valor);
     public ChessGameManager(String filePath) {
         this.chessGame = new ChessGame(filePath);
     }
 
     public boolean movePieceCoordinates(int startCol, int startRow, int endCol, int endRow) {
-        return chessGame.executeMove(endCol, endRow, startCol, startRow);
+        boolean result = chessGame.executeMove(endCol, endRow, startCol, startRow);
+        // String oldBoardState = chessGame.getQueryState();
+        if(result) {
+            pcs.firePropertyChange(BOARD_STATE, null, chessGame.getQueryState());
+            pcs.firePropertyChange(CURRENT_PLAYER, null, chessGame.getCurrentPlayer());
+        }
+        return result;
+    }
+
+    public boolean checkPiece(int col, int row) {
+        boolean result = chessGame.checkPiece(col, row);
+        return result;
     }
 
     public String getCurrentPlayer() {
@@ -35,9 +59,9 @@ public class ChessGameManager {
     }
 
     public String getWinner() {
-        if (chessGame.getWinner() == 0) {
+        if (chessGame.getWinner() == 1) {
             return "WHITE";
-        }else if (chessGame.getWinner() == 1) {
+        }else if (chessGame.getWinner() == 0) {
             return "BLACK";
         }
         return null;
@@ -56,7 +80,8 @@ public class ChessGameManager {
     }
     public void loadGame(String filePath) {
         try {
-            this.chessGame = ChessGame.loadGame(filePath);
+            //this.chessGame = ChessGame.loadGame(filePath);
+            this.chessGame = ChessGameSerialization.deserialize(filePath);
             System.out.println("Jogo  de: " + filePath);
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Erro ao carregar jogo: " + e.getMessage());
@@ -64,14 +89,15 @@ public class ChessGameManager {
     }
     public void saveGame(String filePath) {
         try {
-            chessGame.saveGame(filePath);
+            //chessGame.saveGame(filePath);
+            ChessGameSerialization.serialize(chessGame, filePath);
             System.out.println("Jogo em: " + filePath);
         } catch (IOException e) {
             System.err.println("Erro ao guardar jogo: " + e.getMessage());
         }
     }
 
-    public void SetPlayersNames(String n1, String n2){ chessGame.setPlayersNames(n1, n2);}
+    public void setPlayersNames(String n1, String n2){ chessGame.setPlayersNames(n1, n2);}
     public void exportGameCsv(String filePath) {
         chessGame.exportCsv(filePath);
     }

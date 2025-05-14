@@ -105,7 +105,6 @@ public class ChessGame implements Serializable {
             StringBuilder fullText = new StringBuilder();
             String line;
 
-
             while ((line = reader.readLine()) != null) {
                 fullText.append(line.trim()).append(" ");
             }
@@ -161,18 +160,29 @@ public class ChessGame implements Serializable {
         return false;
     }
 
+    public boolean checkPiece(int col, int row) {
+        Piece piece = board.getPiece(col, row);
+        String pieceS = board.getPieceImageString(col, row);
+        System.out.printf("no execute move %s\n", pieceS);
+        if (piece == null) {
+            System.out.println("Nao existe nada nessa posicao!");
+            return false;
+        }
+        if (piece.isWhite() != isWhiteTurn) {
+            System.out.println("Peca do adversario, impossivel mover!");
+            return false;
+        }
+        return true;
+    }
+
     public boolean executeMove(int startCol, int startRow, int endCol, int endRow) {
         System.out.printf("Start col %d, start row %d, end col %d, end row %d\n", startCol, startRow, endCol, endRow);
         //System.out.println("Entrou aquui");
         Piece piece = board.getPiece(startCol, startRow);
         String pieceS = board.getPieceImageString(startRow, startCol);
         System.out.printf("no execute move %s\n",pieceS);
-        if(piece == null){
-            System.out.println("Nao existe nada nessa posicao!");
-            return false;
-        }
+
         if(piece.isWhite() != isWhiteTurn){
-            System.out.println("Peca do adversario, impossivel mover!");
             return false;
         }
 
@@ -206,6 +216,8 @@ public class ChessGame implements Serializable {
 
         return true;
     }
+
+
 
     public static void main(String[] args) {
 

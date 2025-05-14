@@ -19,6 +19,11 @@ public class MainJFX extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        createStage(stage);
+        createStage(new Stage()); //verificar se esta sincronizado
+    }
+
+    private void createStage(Stage stage){
         RootPane root = new RootPane(chessGameManager);
         Scene scene = new Scene(root,600,400);
         stage.setScene(scene);

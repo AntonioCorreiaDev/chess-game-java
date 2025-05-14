@@ -13,11 +13,12 @@ public class PlayersInfoPane extends VBox {
     private final Label nJogadas = new Label();
     private final Label currentPlayerLabel = new Label();
     private final Label winnerLabel = new Label();
-    private int teste = 0;
+    private int jogadas = 0;
 
     public PlayersInfoPane(ChessGameManager chessGame) {
         this.chessGame = chessGame;
         createViews();
+        registerListeners();
         update();
     }
 
@@ -31,19 +32,25 @@ public class PlayersInfoPane extends VBox {
     public void update() {
         player1Label.setText("Player 1: " + chessGame.getPlayer1());
         player2Label.setText("Player 2: " + chessGame.getPlayer2());
-        nJogadas.setText("Jogada: " + (teste - 1));
+        nJogadas.setText("Jogada: " + jogadas);
         currentPlayerLabel.setText("Current Player: " + chessGame.getCurrentPlayer());
 
         if (chessGame.getWinner() != null) {
             winnerLabel.setText("WINNER: " + chessGame.getWinner());
         }else{
             winnerLabel.setText("EM JOGO");
-            teste ++;
+            jogadas ++;
         }
     }
 
+    private void registerListeners() {
+        chessGame.addPropertyChangeListener(ChessGameManager.CURRENT_PLAYER, evt -> {
+          update();
+        });
+    }
+
     public void reset() {
-        teste = 1;
+        jogadas = 0;
         update();
     }
 }

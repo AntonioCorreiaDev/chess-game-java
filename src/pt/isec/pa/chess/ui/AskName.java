@@ -56,7 +56,7 @@ public class AskName extends Stage {
     private void registerHandlers() {
         btnCancel.setOnAction(actionEvent -> this.close());
         btnConfirm.setOnAction(actionEvent -> {
-            chessGameManager.SetPlayersNames(tfName1.getText(), tfName2.getText());
+            chessGameManager.setPlayersNames(tfName1.getText(), tfName2.getText());
             this.close();
         });
     }

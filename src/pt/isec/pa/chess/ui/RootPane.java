@@ -9,6 +9,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import pt.isec.pa.chess.model.ChessGameManager;
+import pt.isec.pa.chess.model.data.ModelLog;
 
 import java.io.File;
 
@@ -20,15 +21,15 @@ public class RootPane extends BorderPane {
     MenuItem mnNew, mnOpen, mnSave, mnImport, mnExport, mnQuit, mnNormal, mnLearning,
             mnShowPM, mnUndo, mnRedo;
     private PlayersInfoPane playersInfoPane;
-
+    private LogsJFX logWindow;
 
 
     public RootPane(ChessGameManager data) {
-
         this.chessGame = data;
         this.chessBoard = new ChessBoardJFX(chessGame);
         this.playersInfoPane = new PlayersInfoPane(chessGame);
         chessBoard.setPlayersInfoPane(playersInfoPane);
+        this.logWindow = new LogsJFX();
 
         createViews();
         registerHandlers();
@@ -41,8 +42,24 @@ public class RootPane extends BorderPane {
         mnRedo.setDisable(true);
         mnShowPM.setDisable(true);
         mnUndo.setDisable(true);
-        setCenter(chessBoard);
+
+
+        Pane centerPane = new Pane(chessBoard);
+        chessBoard.widthProperty().bind(centerPane.widthProperty());
+        chessBoard.heightProperty().bind(centerPane.heightProperty());
+
+        VBox rightPane = new VBox(logWindow);  // Colocando o LogWindow Ã  direita
+        rightPane.setSpacing(10);
+        rightPane.setPadding(new Insets(10));
+
+        logWindow.setPrefHeight(350);
+        logWindow.setMaxHeight(350);
+        logWindow.setMaxWidth(150);
+
+
+        setCenter(centerPane);
         setLeft(playersInfoPane);
+        setRight(rightPane);
     }
 
     private MenuBar createMenu() {
@@ -77,6 +94,8 @@ public class RootPane extends BorderPane {
             update();
             chessBoard.update();
             playersInfoPane.reset();
+            ModelLog.getInstance().clear();
+            ModelLog.getInstance().log("Jogo iniciado!");
         });
 
         mnQuit.setOnAction(actionEvent -> {
@@ -107,6 +126,7 @@ public class RootPane extends BorderPane {
                 update();
                 chessBoard.update();
                 playersInfoPane.reset();
+                ModelLog.getInstance().log("Jogo importado!");
             }
         });
 
@@ -129,6 +149,7 @@ public class RootPane extends BorderPane {
                 chessGame.loadGame(file.getAbsolutePath());
                 chessBoard.update();
                 playersInfoPane.reset();
+                ModelLog.getInstance().log("Jogo carregado!");
             }
         });
 
@@ -146,7 +167,6 @@ public class RootPane extends BorderPane {
 
     private void update() {
         playersInfoPane.update();
+        chessBoard.update();
     }
-
 }
-
