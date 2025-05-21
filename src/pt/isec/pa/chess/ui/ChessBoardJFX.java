@@ -3,12 +3,14 @@ package pt.isec.pa.chess.ui;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import pt.isec.pa.chess.model.ChessGameManager;
-import pt.isec.pa.chess.model.data.ModelLog;
+import pt.isec.pa.chess.model.ModelLog;
 import pt.isec.pa.chess.ui.res.ImageManager;
+import pt.isec.pa.chess.ui.res.SoundManager;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
 import java.util.List;
 
 public class ChessBoardJFX extends Canvas {
@@ -17,26 +19,37 @@ public class ChessBoardJFX extends Canvas {
     private static final double MARGIN = 20;
 
     private final ChessGameManager chessGame;
+    PropertyChangeSupport pcs;
     private PlayersInfoPane infoPane;
     private int[] selectedPosition = null;
     String pieceShow;
     boolean check = false;
+    public static final String SELECTED_POSITION = "selected_position";
 
 
     public ChessBoardJFX(ChessGameManager game) {
         this.chessGame = game;
+        this.pcs = new PropertyChangeSupport(this);
 
         setWidth(400);
         setHeight(400);
 
-        widthProperty().addListener((_, _, _) -> update());
-        heightProperty().addListener((_, _, _) -> update());
 
         registerHandlers();
         update();
 
     }
 
+    public void setSelectedPosition(int[] pos) {
+        int[] old = this.selectedPosition;
+        this.selectedPosition = pos;
+        pcs.firePropertyChange(SELECTED_POSITION, old, pos);
+    }
+
+
+    public void addPropertyChangeListener(String property, PropertyChangeListener listener){
+        pcs.addPropertyChangeListener(property, listener);
+    }
 
     public void setPlayersInfoPane(PlayersInfoPane infoPane) {
         this.infoPane = infoPane;
@@ -71,10 +84,14 @@ public class ChessBoardJFX extends Canvas {
             System.out.println("Selecionada peça: " + x + ", " + y);
             handleClick(x, y);
         });
+        widthProperty().addListener((_, _, _) -> update());
+        heightProperty().addListener((_, _, _) -> update());
 
         chessGame.addPropertyChangeListener(ChessGameManager.BOARD_STATE, evt -> {
             update();
         });
+
+        addPropertyChangeListener(SELECTED_POSITION, evt -> update());
 
     }
 
@@ -140,7 +157,7 @@ public class ChessBoardJFX extends Canvas {
                     squareSize
             );
 
-            if(check){
+            if(check && selectedPosition !=null && chessGame.getShowPossibleMoves() && chessGame.getLearningMode()) {
                 List<int[]> validMoves = chessGame.getValidMoves(selectedPosition[1], selectedPosition[0]);
                 //System.out.printf("\npeça em: " + selectedPosition[1] + ", " + selectedPosition[0] + "\n");
                 for (int[] move : validMoves) {
@@ -196,27 +213,33 @@ public class ChessBoardJFX extends Canvas {
 
         if (selectedPosition == null) {
             if (piece != null && !piece.isBlank()) {
-                selectedPosition = pos;
+                setSelectedPosition(pos);
                 //System.out.printf("Selecionada %s em [%d,%d]%n", piece,row, col);
                 pieceShow = piece;
-                update();
+                //update();
             }
-        } else {
+        } else if (selectedPosition != null && (pos[0] == selectedPosition[0] && pos[1] == selectedPosition[1])) {
+            setSelectedPosition(null);//clicando na peça deixa de estar selecionada
+            //update();
+
+        }else{
             boolean moved = chessGame.movePieceCoordinates(col, row, selectedPosition[1], selectedPosition[0]);
             if (moved) {
                 String logMsg = String.format(
                         "%s de [%d,%d]->[%d,%d]",
                         pieceShow, selectedPosition[0], selectedPosition[1], row, col
                 );
-                ModelLog.getInstance().log(logMsg); // ⬅️ LOG AQUI
+                ModelLog.getInstance().log(logMsg);
+                //System.out.println("row:"+row);
             } else {
                 String logMsg = String.format(
                         "Movimento inválido de [%d,%d] para [%d,%d]",
                         selectedPosition[0], selectedPosition[1], row, col
                 );
+                setSelectedPosition(null);
                 ModelLog.getInstance().log(logMsg);
             }
-            selectedPosition = null;
+            setSelectedPosition(null);
             pieceShow = null;
             //update();
             //infoPane.update();

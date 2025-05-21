@@ -29,5 +29,14 @@ public class MainJFX extends Application {
         stage.setScene(scene);
         stage.setTitle("ChessGamePA");
         stage.show();
+
+        Stage st2 = new Stage();
+        LogsJFX logs = new LogsJFX();
+        Scene sceneLogs = new Scene(logs,180,400);
+        st2.setScene(sceneLogs);
+        st2.setX(stage.getX()+stage.getWidth());
+        st2.setY(stage.getY());
+        st2.setTitle("LogsPane");
+        st2.show();
     }
 }

@@ -15,12 +15,45 @@ public class ChessGame implements Serializable {
     boolean isWhiteTurn;
     Board board;
     String player1, player2;
+    boolean learningMode;
+    boolean showPM;
+    boolean soundOn;
     int winner = -1; // -1 sem winner, 0 winner é preto, 1 winner é branco
 
 
     public ChessGame(){
         isWhiteTurn = true;
+        learningMode = false;
+        showPM = false;
+        soundOn = true;
         board = new Board();
+    }
+    public void setSoundOn(boolean show){
+        soundOn = show;
+        System.out.println("sound " + ((soundOn) ? "on" : "off"));
+    }
+
+    public boolean getSoundOn(){
+        return soundOn;
+    }
+    public void setShowPossibleMoves(boolean show){
+        showPM = show;
+        System.out.println("Possible moves " + ((showPM) ? "enabled" : "disabled"));
+    }
+
+    public boolean getShowPossibleMoves(){
+        return showPM;
+    }
+
+
+    public void setLearningMode(boolean show){
+        learningMode = show;
+        System.out.println("Learning mode aqui " + ((learningMode) ? "enabled" : "disabled"));
+
+    }
+
+    public boolean getLearningMode(){
+        return learningMode;
     }
 
     public Piece getPiece(int row, int col){
@@ -30,6 +63,10 @@ public class ChessGame implements Serializable {
     public String getPieceImageString(int row, int col){
         return board.getPieceImageString(row, col);
     }
+    public String getPieceSoundString(int row, int col){
+        return board.getPieceSoundString(row, col);
+    }
+
 
     public int getBoardSize(){
         return board.getBoardSize();
@@ -71,6 +108,10 @@ public class ChessGame implements Serializable {
     public String getCurrentPlayer(){
         if (isWhiteTurn) return "WHITE";
         return "BLACK";
+    }
+
+    public void changeCurrentPlayer(){
+        isWhiteTurn = !isWhiteTurn;
     }
 
     public void saveGame(String filePath) throws IOException {
@@ -175,6 +216,14 @@ public class ChessGame implements Serializable {
         return true;
     }
 
+    public void removePiece(int col, int row) {
+        board.removePiece(col, row);
+    }
+
+    public void setPiece(Piece piece, int col, int row) {
+        board.setPiece(piece, col, row);
+    }
+
     public boolean executeMove(int startCol, int startRow, int endCol, int endRow) {
         System.out.printf("Start col %d, start row %d, end col %d, end row %d\n", startCol, startRow, endCol, endRow);
         //System.out.println("Entrou aquui");
@@ -183,6 +232,7 @@ public class ChessGame implements Serializable {
         System.out.printf("no execute move %s\n",pieceS);
 
         if(piece.isWhite() != isWhiteTurn){
+            System.out.println("erroCommand");
             return false;
         }
 
@@ -212,6 +262,11 @@ public class ChessGame implements Serializable {
         }
 
         isWhiteTurn = !isWhiteTurn;
+        if (isCheckMate(isWhiteTurn)) { // Verifica se o jogador atual está em checkmate
+            winner = isWhiteTurn ? 0 : 1;
+            System.out.println("XEQUE-MATE! Vencedor: " + (winner == 0 ? "BLACK" : "WHITE"));
+            return true; // Jogo acabou
+        }
         System.out.println(getQueryState());
 
         return true;

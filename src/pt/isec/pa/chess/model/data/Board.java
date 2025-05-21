@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Board implements Serializable{
+public class Board implements Serializable, Cloneable{
     @Serial
     private static final long serialVersionUID = 1L;
     private static final int BOARD_SIZE = 8;
@@ -15,6 +15,28 @@ public class Board implements Serializable{
         board = new Piece[BOARD_SIZE][BOARD_SIZE];
         setupInitialPosition();
     }
+
+    //board vazia
+    private Board(boolean empty) {
+        board = new Piece[BOARD_SIZE][BOARD_SIZE];
+    }
+
+    @Override
+    public Board clone() {
+        Board clonedBoard = new Board(false); // Cria um board vazio (sem setup inicial)
+
+        for (int row = 0; row < BOARD_SIZE; row++) {
+            for (int col = 0; col < BOARD_SIZE; col++) {
+                Piece original = this.board[row][col];
+                if (original != null) {
+                    clonedBoard.board[row][col] = original.clone(); // Clonamos a peça
+                }
+            }
+        }
+
+        return clonedBoard;
+    }
+
     public int getBoardSize(){
         return BOARD_SIZE;
     }
@@ -108,6 +130,14 @@ public class Board implements Serializable{
         if (piece != null){
             sb.append(piece.getType());
             sb.append(piece.getColorString());
+        }
+        return sb.toString();
+    }
+    public String getPieceSoundString(int row, int col){
+        Piece piece = getPiece(col, row);
+        StringBuilder sb = new StringBuilder();
+        if (piece != null){
+            sb.append(piece.getType());
         }
         return sb.toString();
     }

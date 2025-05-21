@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Piece implements Serializable {
+public abstract class Piece implements Serializable, Cloneable{
     @Serial
     private static final long serialVersionUID = 1L;
     protected int col;
@@ -24,6 +24,15 @@ public abstract class Piece implements Serializable {
         this.col = col;
         this.row = row;
         this.hasMoved = hasMoved;
+    }
+
+    @Override
+    public Piece clone() {
+        try {
+            return (Piece) super.clone(); // shallow clone suficiente se os campos forem primitivos
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 
     public int getCol() {
@@ -98,7 +107,7 @@ public abstract class Piece implements Serializable {
         sb.append(getSymbol());
         sb.append((char)('a' + col));
         sb.append(row + 1);
-        if ((this instanceof King || this instanceof Rook ) && !hasMoved) sb.append("*");
+        if ((this instanceof King || this instanceof Rook || this instanceof Pawn) && !hasMoved) sb.append("*");
         return sb.toString();
     }
 

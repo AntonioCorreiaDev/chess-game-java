@@ -2,14 +2,14 @@ package pt.isec.pa.chess.ui;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import pt.isec.pa.chess.model.ChessGameManager;
-import pt.isec.pa.chess.model.data.ModelLog;
+import pt.isec.pa.chess.model.ModelLog;
+import pt.isec.pa.chess.ui.res.SoundManager;
 
 import java.io.File;
 
@@ -17,11 +17,10 @@ public class RootPane extends BorderPane {
 
     ChessGameManager chessGame;
     ChessBoardJFX chessBoard;
-    Menu mnGame, mnMode;
-    MenuItem mnNew, mnOpen, mnSave, mnImport, mnExport, mnQuit, mnNormal, mnLearning,
-            mnShowPM, mnUndo, mnRedo;
+    Menu mnGame, mnMode, mnSound;
+    MenuItem mnNew, mnOpen, mnSave, mnImport, mnExport, mnQuit, mnNormal, mnUndo, mnRedo;
+    CheckMenuItem mnLearning, mnShowPM, mnSoundToggle;
     private PlayersInfoPane playersInfoPane;
-    private LogsJFX logWindow;
 
 
     public RootPane(ChessGameManager data) {
@@ -29,7 +28,6 @@ public class RootPane extends BorderPane {
         this.chessBoard = new ChessBoardJFX(chessGame);
         this.playersInfoPane = new PlayersInfoPane(chessGame);
         chessBoard.setPlayersInfoPane(playersInfoPane);
-        this.logWindow = new LogsJFX();
 
         createViews();
         registerHandlers();
@@ -48,18 +46,8 @@ public class RootPane extends BorderPane {
         chessBoard.widthProperty().bind(centerPane.widthProperty());
         chessBoard.heightProperty().bind(centerPane.heightProperty());
 
-        VBox rightPane = new VBox(logWindow);  // Colocando o LogWindow Ã  direita
-        rightPane.setSpacing(10);
-        rightPane.setPadding(new Insets(10));
-
-        logWindow.setPrefHeight(350);
-        logWindow.setMaxHeight(350);
-        logWindow.setMaxWidth(150);
-
-
         setCenter(centerPane);
         setLeft(playersInfoPane);
-        setRight(rightPane);
     }
 
     private MenuBar createMenu() {
@@ -74,15 +62,20 @@ public class RootPane extends BorderPane {
         mnGame.getItems().addAll(mnNew,mnOpen,mnSave,mnImport, mnExport,new SeparatorMenuItem(),mnQuit);
 
         mnNormal = new MenuItem("Normal Mode");
-        mnLearning = new MenuItem("Learning Mode");
-        mnShowPM = new MenuItem("Show Possible Moves");
+        mnLearning = new CheckMenuItem("Learning Mode");
+        mnShowPM = new CheckMenuItem("Show Possible Moves");
         mnUndo = new MenuItem("Undo");
         mnRedo = new MenuItem("Redo");
 
         mnMode = new Menu("Mode");
         mnMode.getItems().addAll(mnNormal,mnLearning, new SeparatorMenuItem(), mnShowPM, mnUndo, mnRedo);
 
-        mb.getMenus().addAll(mnGame,mnMode);
+        mnSound = new Menu("Settings"); // para quando for preciso fazer mais coisas
+        mnSoundToggle = new CheckMenuItem("Toggle Sound");
+        mnSoundToggle.setSelected(true);
+        mnSound.getItems().add(mnSoundToggle);
+
+        mb.getMenus().addAll(mnGame,mnMode, mnSound);
         return mb;
     }
 
@@ -103,9 +96,23 @@ public class RootPane extends BorderPane {
         });
 
         mnLearning.setOnAction(actionEvent -> {
-            mnRedo.setDisable(false);
-            mnShowPM.setDisable(false);
-            mnUndo.setDisable(false);
+            boolean isSelected = mnLearning.isSelected();
+            mnRedo.setDisable(!isSelected);
+            mnShowPM.setDisable(!isSelected);
+            if(!isSelected){
+                mnShowPM.setSelected(false);
+            }
+            mnUndo.setDisable(!isSelected);
+            chessGame.setLearningMode(isSelected);
+
+            ModelLog.getInstance().log("Learning mode " + (isSelected ? "enabled" : "disabled"));
+        });
+
+        mnShowPM.setOnAction(actionEvent -> {
+            boolean show = mnShowPM.isSelected();
+            chessGame.setShowPossibleMoves(show);
+            chessBoard.update();
+            ModelLog.getInstance().log("Show possible moves " + (show ? "enabled" : "disabled"));
         });
 
         mnNormal.setOnAction(actionEvent -> {
@@ -127,6 +134,7 @@ public class RootPane extends BorderPane {
                 chessBoard.update();
                 playersInfoPane.reset();
                 ModelLog.getInstance().log("Jogo importado!");
+                ModelLog.getInstance().getLogs();
             }
         });
 
@@ -162,11 +170,31 @@ public class RootPane extends BorderPane {
                 chessGame.saveGame(file.getAbsolutePath());
             }
         });
+
+        mnSoundToggle.setOnAction(actionEvent -> {
+            if (mnSoundToggle.isSelected()) {
+                System.out.println("Som Ativado");
+                chessGame.setSoundOn(true);
+            } else {
+                if(SoundManager.isPlaying())
+                    SoundManager.stop();
+                chessGame.setSoundOn(false);
+                System.out.println("Som Desativado");
+            }
+        });
+
+        mnRedo.setOnAction(actionEvent -> {
+            chessGame.redo();
+        });
+
+        mnUndo.setOnAction(actionEvent -> {
+            chessGame.undo();
+        });
     }
 
 
     private void update() {
-        playersInfoPane.update();
-        chessBoard.update();
+        //playersInfoPane.update();
+        //chessBoard.update();
     }
 }

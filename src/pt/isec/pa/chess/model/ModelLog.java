@@ -1,9 +1,8 @@
-package pt.isec.pa.chess.model.data;
+package pt.isec.pa.chess.model;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class ModelLog {

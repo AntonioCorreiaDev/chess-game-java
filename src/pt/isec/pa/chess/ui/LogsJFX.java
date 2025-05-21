@@ -1,17 +1,11 @@
 package pt.isec.pa.chess.ui;
 
 import javafx.geometry.Insets;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.VBox;
-import javafx.stage.Stage;
-import pt.isec.pa.chess.model.ChessGameManager;
-import pt.isec.pa.chess.model.data.ModelLog;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
+import pt.isec.pa.chess.model.ModelLog;
 
 public class LogsJFX extends VBox {
 
@@ -48,6 +42,5 @@ public class LogsJFX extends VBox {
             logListView.getItems().clear();
         });
     }
-
 }
 

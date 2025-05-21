@@ -31,6 +31,25 @@ public class Pawn extends Piece {
                 }
             }
         }
+
+        // Captura na diagonal esquerda
+        int leftCol = col - 1;
+        if (board.isValidPosition(leftCol, newRow)) {
+            Piece piece = board.getPiece(leftCol, newRow);
+            if (piece != null && piece.isWhite() != this.isWhite) {
+                moves.add(new int[]{leftCol, newRow});
+            }
+        }
+
+        // Captura na diagonal direita
+        int rightCol = col + 1;
+        if (board.isValidPosition(rightCol, newRow)) {
+            Piece piece = board.getPiece(rightCol, newRow);
+            if (piece != null && piece.isWhite() != this.isWhite) {
+                moves.add(new int[]{rightCol, newRow});
+            }
+        }
+
         return moves;
     }
 
