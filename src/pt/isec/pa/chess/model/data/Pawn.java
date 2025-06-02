@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Pawn extends Piece {
+    private boolean enPassantVulnerable = false;
 
     public Pawn(boolean isWhite, int col, int row) { super(isWhite, col, row); }
+
     public Pawn(boolean isWhite, int col, int row, boolean hasMoved) {super(isWhite, col, row, hasMoved);}
 
     @Override
@@ -50,6 +52,26 @@ public class Pawn extends Piece {
             }
         }
 
+        // Captura enPassant na diagonal esquerda
+        if (board.isValidPosition(leftCol, newRow)) {
+            Piece piece = board.getPiece(leftCol, row);
+            if (piece != null && piece.isWhite() != this.isWhite && piece instanceof Pawn && piece.isEnPassantVulnerable()) {
+                if((this.isWhite && newRow == 5) || (!this.isWhite && newRow == 2)) {
+                    moves.add(new int[]{leftCol, newRow});
+                }
+            }
+        }
+
+        // Captura enPassant na diagonal direita
+        if (board.isValidPosition(rightCol, newRow)) {
+            Piece piece = board.getPiece(rightCol, row);
+            if (piece != null && piece.isWhite() != this.isWhite && piece instanceof Pawn && piece.isEnPassantVulnerable()) {
+                if((this.isWhite && newRow == 5) || (!this.isWhite && newRow == 2)) {
+                    moves.add(new int[]{rightCol, newRow});
+                }
+            }
+        }
+
         return moves;
     }
 
@@ -61,6 +83,15 @@ public class Pawn extends Piece {
     @Override
     public String getType() {
         return "pawn";
+    }
+
+    @Override
+    public boolean isEnPassantVulnerable() {
+        return enPassantVulnerable;
+    }
+
+    public void setEnPassantVulnerable(boolean enPassantVulnerable) {
+        this.enPassantVulnerable = enPassantVulnerable;
     }
 }
 

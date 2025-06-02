@@ -1,14 +1,10 @@
 package pt.isec.pa.chess.model.data;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Queen extends Piece {
 
     public Queen(boolean isWhite, int col, int row) { super(isWhite, col, row);}
+
     public Queen(boolean isWhite, int col, int row, boolean hasMoved) { super(isWhite, col, row, hasMoved);}
-
-
 
     @Override
     protected int[][] getDirections() {

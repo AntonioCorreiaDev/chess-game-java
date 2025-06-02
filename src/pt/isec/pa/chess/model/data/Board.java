@@ -2,13 +2,14 @@ package pt.isec.pa.chess.model.data;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Board implements Serializable, Cloneable{
     @Serial
     private static final long serialVersionUID = 1L;
+
     private static final int BOARD_SIZE = 8;
+
     private Piece [][] board;
 
     public Board() {
@@ -16,7 +17,6 @@ public class Board implements Serializable, Cloneable{
         setupInitialPosition();
     }
 
-    //board vazia
     private Board(boolean empty) {
         board = new Piece[BOARD_SIZE][BOARD_SIZE];
     }
@@ -40,12 +40,12 @@ public class Board implements Serializable, Cloneable{
     public int getBoardSize(){
         return BOARD_SIZE;
     }
+
     public Board(List<String> pieces) {
         board = new Piece[BOARD_SIZE][BOARD_SIZE];
         for (String value : pieces) {
             Piece piece = PieceType.createPieceFromString(value);
             board[piece.getRow()][piece.getCol()] = piece;
-            System.out.println("Adicionei " + piece + " em (" + piece.getRow() + "," + piece.getCol() + ")");
         }
     }
 
@@ -53,6 +53,7 @@ public class Board implements Serializable, Cloneable{
         board = new Piece[BOARD_SIZE][BOARD_SIZE];
         setupFromFile(boardState);
     }
+
     private void setupFromFile(String boardState){
         String[] piecesAndPositions = boardState.split(",\\s*");
         for (String pieceAndPosition : piecesAndPositions) {
@@ -108,6 +109,54 @@ public class Board implements Serializable, Cloneable{
         return true;
     }
 
+    public boolean canCastleKingside(boolean isWhite) {
+        int row = isWhite ? 0 : 7;
+        Piece king = getPiece(4, row);
+        Piece rook = getPiece(7, row);
+
+        if (!(king instanceof King && !king.isHasMoved()) ||
+                !(rook instanceof Rook && !rook.isHasMoved())) {
+            return false;
+        }
+
+        if (getPiece(5, row) != null || getPiece(6, row) != null) {
+            return false;
+        }
+
+        if (isSquareUnderAttack(4, row, !isWhite) ||
+                isSquareUnderAttack(5, row, !isWhite) ||
+                isSquareUnderAttack(6, row, !isWhite)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean canCastleQueenside(boolean isWhite) {
+        int row = isWhite ? 0 : 7;
+        Piece king = getPiece(4, row);
+        Piece rook = getPiece(0, row);
+
+        if (!(king instanceof King && !king.isHasMoved()) ||
+                !(rook instanceof Rook && !rook.isHasMoved())) {
+            return false;
+        }
+
+        if (getPiece(1, row) != null ||
+                getPiece(2, row) != null ||
+                getPiece(3, row) != null) {
+            return false;
+        }
+
+        if (isSquareUnderAttack(4, row, !isWhite) ||
+                isSquareUnderAttack(3, row, !isWhite) ||
+                isSquareUnderAttack(2, row, !isWhite)) {
+            return false;
+        }
+
+        return true;
+    }
+
     public Piece getPiece(int col, int row){
         if (isValidPosition(col, row)) {
             return board[row][col];
@@ -123,7 +172,6 @@ public class Board implements Serializable, Cloneable{
         return piece.getPossibleMoves(this);
     }
 
-
     public String getPieceImageString(int row, int col){
         Piece piece = getPiece(col, row);
         StringBuilder sb = new StringBuilder();
@@ -133,6 +181,7 @@ public class Board implements Serializable, Cloneable{
         }
         return sb.toString();
     }
+
     public String getPieceSoundString(int row, int col){
         Piece piece = getPiece(col, row);
         StringBuilder sb = new StringBuilder();
@@ -140,6 +189,14 @@ public class Board implements Serializable, Cloneable{
             sb.append(piece.getType());
         }
         return sb.toString();
+    }
+
+    public Boolean getPieceEnPassantVulnerable(int row, int col){
+        Piece piece = getPiece(col, row);
+        if(piece != null) {
+            return piece.isEnPassantVulnerable();
+        }
+        return false;
     }
 
     public String getAllBoardText() {
@@ -171,7 +228,6 @@ public class Board implements Serializable, Cloneable{
             board[row][col] = piece;
     }
 
-    //PARTE DO CHECK AQUI
     public int[] findKingPosition(boolean isWhite) {
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
@@ -203,4 +259,5 @@ public class Board implements Serializable, Cloneable{
         }
         return false;
     }
+
 }

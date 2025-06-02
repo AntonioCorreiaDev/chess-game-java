@@ -8,8 +8,8 @@ public class Knight extends Piece {
     public Knight(boolean isWhite, int col, int row) {
         super(isWhite, col, row);
     }
-    public Knight(boolean isWhite, int col, int row, boolean hasMoved) { super(isWhite, col, row, hasMoved);}
 
+    public Knight(boolean isWhite, int col, int row, boolean hasMoved) { super(isWhite, col, row, hasMoved);}
 
     @Override
     protected int[][] getDirections() {

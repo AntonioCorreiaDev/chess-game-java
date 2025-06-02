@@ -15,21 +15,27 @@ import java.util.List;
 
 public class ChessBoardJFX extends Canvas {
 
+
     private static final double SQUARE_SIZE = 40;
     private static final double MARGIN = 20;
 
+
     private final ChessGameManager chessGame;
+    boolean soundOn;
+    boolean learningMode;
+    boolean showPM;
     PropertyChangeSupport pcs;
     private PlayersInfoPane infoPane;
     private int[] selectedPosition = null;
-    String pieceShow;
-    boolean check = false;
+    boolean selectedPieceLegal = false;
     public static final String SELECTED_POSITION = "selected_position";
-
 
     public ChessBoardJFX(ChessGameManager game) {
         this.chessGame = game;
         this.pcs = new PropertyChangeSupport(this);
+        this.soundOn = true;
+        this.learningMode = false;
+        this.showPM = false;
 
         setWidth(400);
         setHeight(400);
@@ -46,6 +52,33 @@ public class ChessBoardJFX extends Canvas {
         pcs.firePropertyChange(SELECTED_POSITION, old, pos);
     }
 
+    public void setSoundOn(boolean show){
+        soundOn = show;
+        System.out.println("sound " + ((soundOn) ? "on" : "off"));
+    }
+
+    public boolean getSoundOn(){
+        return soundOn;
+    }
+
+    public void setShowPossibleMoves(boolean show){
+        showPM = show;
+        System.out.println("Possible moves " + ((showPM) ? "enabled" : "disabled"));
+    }
+
+    public boolean getShowPossibleMoves(){
+        return showPM;
+    }
+
+    public void setLearningMode(boolean show){
+        learningMode = show;
+        System.out.println("Learning mode " + ((learningMode) ? "enabled" : "disabled"));
+
+    }
+
+    public boolean getLearningMode(){
+        return learningMode;
+    }
 
     public void addPropertyChangeListener(String property, PropertyChangeListener listener){
         pcs.addPropertyChangeListener(property, listener);
@@ -81,7 +114,6 @@ public class ChessBoardJFX extends Canvas {
             double x = event.getX();
             double y = event.getY();
 
-            System.out.println("Selecionada peça: " + x + ", " + y);
             handleClick(x, y);
         });
         widthProperty().addListener((_, _, _) -> update());
@@ -136,7 +168,7 @@ public class ChessBoardJFX extends Canvas {
             int selRow = size - 1 - selectedPosition[0]; // converter para coordenada de desenho
             int selCol = selectedPosition[1];
 
-            if(check) {
+            if(selectedPieceLegal) {
                 gc.setFill(new Color(0.5, 0.5, 0.5, 0.3));
             }else{
                 gc.setFill(new Color(1.0, 0.0, 0.0, 0.3));
@@ -157,12 +189,11 @@ public class ChessBoardJFX extends Canvas {
                     squareSize
             );
 
-            if(check && selectedPosition !=null && chessGame.getShowPossibleMoves() && chessGame.getLearningMode()) {
+            if(selectedPieceLegal && selectedPosition !=null && getShowPossibleMoves() && getLearningMode()) {
                 List<int[]> validMoves = chessGame.getValidMoves(selectedPosition[1], selectedPosition[0]);
-                //System.out.printf("\npeça em: " + selectedPosition[1] + ", " + selectedPosition[0] + "\n");
+
                 for (int[] move : validMoves) {
-                    //System.out.printf("-> [%d, %d]%n", move[0], move[1]);
-                    int moveCol = move[0];
+                     int moveCol = move[0];
                     int moveRow = size - 1 - move[1]; // inverter para coordenadas certas do tabuleiro no ecra
 
                     gc.setFill(new Color(0, 1, 0, 0.3)); // verde transparente
@@ -198,51 +229,159 @@ public class ChessBoardJFX extends Canvas {
         }
     }
 
+    private void soundMove(String pieceName1, String pieceName2, String color1, int fromCol, int fromRow, int toCol, int toRow) {
+
+        char letterFinal = (char) ('a' + toCol);
+        String colSoundFinal = String.valueOf(letterFinal);
+
+        char letterInicial = (char) ('a' + fromCol);
+        String colSoundInicial = String.valueOf(letterInicial);
+
+        String winner = chessGame.getWinner();
+
+        String color2 = null;
+
+        if(color1.equals("white")){
+            color2 = "black";
+        }else{
+            color2 = "white";
+        }
+
+        if (soundOn) {
+            SoundManager.stop();
+
+            if ((pieceName1 != null && pieceName2 == null) && winner == null) {
+                SoundManager.playMultiple(
+                        colSoundInicial + ".mp3",
+                        (fromRow + 1) + ".mp3",
+                        color1 + ".mp3",
+                        pieceName1 + ".mp3",
+                        colSoundFinal + ".mp3",
+                        (toRow + 1) + ".mp3"
+                );
+            } else if ((pieceName1 != null && pieceName2 == null) && winner != null) {
+                SoundManager.playMultiple(
+                        colSoundInicial + ".mp3",
+                        (fromRow + 1) + ".mp3",
+                        color1 + ".mp3",
+                        pieceName1 + ".mp3",
+                        colSoundFinal + ".mp3",
+                        (toRow + 1) + ".mp3",
+                        "check.mp3"
+                );
+            } else if ((pieceName1 != null && pieceName2 != null) && winner == null) {
+                SoundManager.playMultiple(
+                        colSoundInicial + ".mp3",
+                        (fromRow + 1) + ".mp3",
+                        color1 + ".mp3",
+                        pieceName1 + ".mp3",
+                        colSoundFinal + ".mp3",
+                        (toRow + 1) + ".mp3",
+                        "captures.mp3",
+                        color2 + ".mp3",
+                        pieceName2 + ".mp3"
+                );
+            } else if ((pieceName1 != null && pieceName2 != null) && winner != null) {
+                SoundManager.playMultiple(
+                        colSoundInicial + ".mp3",
+                        (fromRow + 1) + ".mp3",
+                        color1 + ".mp3",
+                        pieceName1 + ".mp3",
+                        colSoundFinal + ".mp3",
+                        (toRow + 1) + ".mp3",
+                        "captures.mp3",
+                        color2 + ".mp3",
+                        pieceName2 + ".mp3",
+                        "check.mp3"
+                );
+            }
+        }
+    }
 
     private void handleClick(double xPixel, double yPixel) {
+        if(chessGame.getPlayer1() == null || chessGame.getPlayer2() == null) {
+            AskName askName = new AskName(chessGame);
+            askName.showAndWait();
+            chessGame.resetGame();
+        }
+
+
         int[] pos = getBoardPosition(xPixel, yPixel);
         if (pos == null) {
-            //System.out.println("Clique fora do tabuleiro.");
             return;
         }
 
         int row = pos[0], col = pos[1];
-        //System.out.printf("Clicou em linha %d, coluna %d%n", row, col);
-        check = chessGame.checkPiece(col, row);
+        selectedPieceLegal = chessGame.checkPieceLegal(col, row);
         String piece = chessGame.getPieceImageString(row, col);
 
         if (selectedPosition == null) {
             if (piece != null && !piece.isBlank()) {
                 setSelectedPosition(pos);
-                //System.out.printf("Selecionada %s em [%d,%d]%n", piece,row, col);
-                pieceShow = piece;
-                //update();
             }
-        } else if (selectedPosition != null && (pos[0] == selectedPosition[0] && pos[1] == selectedPosition[1])) {
+        } else if (getLearningMode() && selectedPosition != null && (pos[0] == selectedPosition[0] && pos[1] == selectedPosition[1])) {
             setSelectedPosition(null);//clicando na peça deixa de estar selecionada
-            //update();
 
         }else{
-            boolean moved = chessGame.movePieceCoordinates(col, row, selectedPosition[1], selectedPosition[0]);
+            String pieceName1 = chessGame.getPieceName(selectedPosition[0], selectedPosition[1]);
+            String pieceName2 = chessGame.getPieceName(row, col);
+            String pieceColor1 = chessGame.getPieceColor(selectedPosition[0], selectedPosition[1]);
+
+            if(pieceName1.equals("pawn")){
+                int direction;
+                if(pieceColor1.equals("white")){
+                    direction = 1;
+                }else{
+                    direction = -1;
+                }
+                String pawnEnPassantCapturedName = chessGame.getPieceName(row - direction, col);
+                String pawnEnPassantCapturedColor = chessGame.getPieceColor(row - direction, col);
+                boolean pawnEnPassantVulnerable = chessGame.getPieceEnPassantVulnerable(row - direction, col);
+                if(pawnEnPassantCapturedName != null && pawnEnPassantCapturedName.equals(pieceName1) && !pawnEnPassantCapturedColor.equals(pieceColor1) && pawnEnPassantVulnerable){
+                    pieceName2 = pawnEnPassantCapturedName;
+                }
+            }
+
+            boolean moved = chessGame.movePieceCoordinates(selectedPosition[1], selectedPosition[0], col, row);
             if (moved) {
+                if(soundOn){
+                    soundMove(pieceName1, pieceName2, pieceColor1, selectedPosition[1], selectedPosition[0], col, row);
+                }
                 String logMsg = String.format(
                         "%s de [%d,%d]->[%d,%d]",
-                        pieceShow, selectedPosition[0], selectedPosition[1], row, col
-                );
-                ModelLog.getInstance().log(logMsg);
-                //System.out.println("row:"+row);
-            } else {
-                String logMsg = String.format(
-                        "Movimento inválido de [%d,%d] para [%d,%d]",
-                        selectedPosition[0], selectedPosition[1], row, col
+                        pieceColor1 + " " + pieceName1, selectedPosition[0], selectedPosition[1], row, col
                 );
                 setSelectedPosition(null);
+
+                //promotio pawn
+                if(pieceName1.equals("pawn")){
+                    if(pieceColor1.equals("white")){
+                        if(row == 7) {
+                            PawnPromotion pp = new PawnPromotion(chessGame);
+                            pp.showAndWait();
+                            chessGame.promotePawn(col, row, true);
+                        }
+                    }else{
+                        if(row == 0) {
+                            PawnPromotion pp = new PawnPromotion(chessGame);
+                            pp.showAndWait();
+                            chessGame.promotePawn(col, row, false);
+                        }
+                    }
+                }
                 ModelLog.getInstance().log(logMsg);
+            } else {
+                if(pos[0] != selectedPosition[0] || pos[1] != selectedPosition[1]) {
+                    String logMsg = String.format(
+                            "Movimento inválido de [%d,%d] para [%d,%d]",
+                            selectedPosition[0], selectedPosition[1], row, col
+                    );
+                    ModelLog.getInstance().log(logMsg);
+                }
             }
-            setSelectedPosition(null);
-            pieceShow = null;
-            //update();
-            //infoPane.update();
+            if(learningMode || !selectedPieceLegal){
+                setSelectedPosition(null);
+            }
         }
     }
 }

@@ -1,17 +1,21 @@
 package pt.isec.pa.chess.model.Command;
 
-import pt.isec.pa.chess.model.ChessGameManager;
 import pt.isec.pa.chess.model.data.ChessGame;
+import pt.isec.pa.chess.model.data.King;
+import pt.isec.pa.chess.model.data.Pawn;
 import pt.isec.pa.chess.model.data.Piece;
-import pt.isec.pa.chess.ui.res.SoundManager;
 
 public class MovePieceCommand implements ICommand {
     protected ChessGame receiver;
     private final Piece piece;
     private final int fromCol, fromRow;
     private final int toCol, toRow;
-    private final Piece capturedPiece; // para quando for possivel a captura
+    private Piece capturedPiece; // para quando for possivel a captura
+    private Piece rook; // para quando for roque
     private final boolean pieceHasMovedBefore;
+    private boolean kingSideRook;
+    private boolean queenSideRook;
+    private boolean enPassant;
 
     public MovePieceCommand(ChessGame receiver, int fromCol, int fromRow, int toCol, int toRow) {
         this.receiver = receiver;
@@ -25,91 +29,44 @@ public class MovePieceCommand implements ICommand {
         }else{
             this.capturedPiece = null;
         }
+        this.rook = null;
+        this.kingSideRook = false;
+        this.queenSideRook = false;
+
         this.pieceHasMovedBefore = piece.isHasMoved();
     }
 
     @Override
     public boolean execute() {
-        String pieceString = receiver.getPieceImageString(fromRow, fromCol);
-        String capturedPieceString = null;
-        String colorChar1 = pieceString.substring(pieceString.length() - 1);
-        String color1 = colorChar1.equals("W") ? "white" : "black";
 
-        String colorChar2 = null;
-        String color2 = null;
-
-        String pieceName1 = pieceString.substring(0, pieceString.length() - 1);
-        String pieceName2 = null;
-
-        char letterFinal = (char) ('a' + toCol);
-        String colSoundFinal = String.valueOf(letterFinal);
-
-        char letterInicial = (char) ('a' + fromCol);
-        String colSoundInicial = String.valueOf(letterInicial);
-
-        if (capturedPiece != null) {
-            capturedPieceString = receiver.getPieceImageString(toRow, toCol);
-            colorChar2 = capturedPieceString.substring(capturedPieceString.length() - 1);
-            color2 = colorChar2.equals("W") ? "white" : "black";
-            pieceName2 = capturedPieceString.substring(0, capturedPieceString.length() - 1);
-        }
-
-        boolean result = receiver.executeMove(fromCol, fromRow, toCol, toRow);
-        int winner = receiver.getWinner();
-
-        if (result && pieceString.length() > 1 && receiver.getSoundOn()) {
-            System.out.println("entrou");
-
-            if (capturedPiece == null && winner == -1) {
-                SoundManager.playMultiple(
-                        colSoundInicial + ".mp3",
-                        (fromRow + 1) + ".mp3",
-                        color1 + ".mp3",
-                        pieceName1 + ".mp3",
-                        colSoundFinal + ".mp3",
-                        (toRow + 1) + ".mp3"
-                );
-            }else if(capturedPiece == null && winner != -1){
-                SoundManager.playMultiple(
-                        colSoundInicial + ".mp3",
-                        (fromRow + 1) + ".mp3",
-                        color1 + ".mp3",
-                        pieceName1 + ".mp3",
-                        colSoundFinal + ".mp3",
-                        (toRow + 1) + ".mp3",
-                        "check.mp3"
-                );
-            }else if(capturedPiece != null && winner == -1){
-                SoundManager.playMultiple(
-                        colSoundInicial + ".mp3",
-                        (fromRow + 1) + ".mp3",
-                        color1 + ".mp3",
-                        pieceName1 + ".mp3",
-                        colSoundFinal + ".mp3",
-                        (toRow + 1) + ".mp3",
-                        "captures.mp3",
-                        color2 + ".mp3",
-                        pieceName2 + ".mp3"
-                );
-            }else if(capturedPiece != null && winner != -1){
-                SoundManager.playMultiple(
-                        colSoundInicial + ".mp3",
-                        (fromRow + 1) + ".mp3",
-                        color1 + ".mp3",
-                        pieceName1 + ".mp3",
-                        colSoundFinal + ".mp3",
-                        (toRow + 1) + ".mp3",
-                        "captures.mp3",
-                        color2 + ".mp3",
-                        pieceName2 + ".mp3",
-                        "check.mp3"
-                );
+        // Lógica de roque e en passant (mantém igual)
+        if (piece instanceof King && Math.abs(fromCol - toCol) == 2) {
+            //rooque pequeno (lado do rei)
+            if (toCol > fromCol) {
+                this.rook = receiver.getPiece(fromRow, 7);
+                this.kingSideRook = true;
+            } else {
+                this.rook = receiver.getPiece(fromRow, 0);
+                this.queenSideRook = true;
             }
         }
 
-        return result;
-    }
+        // Verificar en passant
+        if(piece instanceof Pawn){
+            int direction = piece.isWhite() ? 1 : -1;
+            Piece pawnEnPassantCaptured = receiver.getPiece(toCol, toRow - direction);
+            if(pawnEnPassantCaptured instanceof Pawn
+                    && pawnEnPassantCaptured.isWhite() != piece.isWhite()
+                    && pawnEnPassantCaptured.isEnPassantVulnerable()){
+                capturedPiece = pawnEnPassantCaptured;
+                enPassant = true;
+            }
+        }
 
+        int resultado = receiver.executeMove(fromCol, fromRow, toCol, toRow);
+
+        return resultado > 0;
+    }
 
     @Override
     public boolean undo() {
@@ -117,7 +74,22 @@ public class MovePieceCommand implements ICommand {
         piece.setHasMoved(pieceHasMovedBefore);
         receiver.removePiece(toCol, toRow); // Remove a peça
         receiver.setPiece(piece, fromCol, fromRow); // Move back
-        receiver.setPiece(capturedPiece, toCol, toRow); // Move back
+        if(capturedPiece != null) {
+            receiver.setPiece(capturedPiece, capturedPiece.getCol(), capturedPiece.getRow()); // Move back capturedPiece
+            if(enPassant && capturedPiece instanceof Pawn){
+                ((Pawn) capturedPiece).setEnPassantVulnerable(true);
+            }
+        }
+        if(rook != null) {
+            if(kingSideRook){
+                receiver.removePiece(5, fromRow); // Move back rook
+                receiver.setPiece(rook, 7, fromRow);
+            }else if(queenSideRook){
+                receiver.removePiece(3, fromRow); // Move back rook
+                receiver.setPiece(rook, 0, fromRow);
+            }
+            rook.setHasMoved(false);
+        }
         receiver.changeCurrentPlayer();
         return true;
     }

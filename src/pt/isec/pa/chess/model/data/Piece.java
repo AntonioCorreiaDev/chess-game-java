@@ -44,13 +44,17 @@ public abstract class Piece implements Serializable, Cloneable{
     }
 
     public void setPosition(int col, int row){
-
-        if(!hasMoved)
+        if(!hasMoved) {
             hasMoved = true;
+            if(this instanceof Pawn && (row == this.row -2 || row == this.row +2)) {
+                ((Pawn) this).setEnPassantVulnerable(true);
+            }
+        }
 
         this.col = col;
         this.row = row;
     }
+
     private boolean getColor(){
         return isWhite;
     }
@@ -67,6 +71,10 @@ public abstract class Piece implements Serializable, Cloneable{
 
     public boolean isHasMoved() {
         return hasMoved;
+    }
+
+    public boolean isEnPassantVulnerable() {
+        return false;
     }
 
     public void setHasMoved(boolean hasMoved) {
@@ -99,7 +107,9 @@ public abstract class Piece implements Serializable, Cloneable{
     }
 
     public abstract String getType();
+
     public abstract String getSymbol();
+
     protected abstract int[][] getDirections();
 
     public String getString(){
@@ -116,7 +126,6 @@ public abstract class Piece implements Serializable, Cloneable{
 
         Piece pieceAtTarget = board.getPiece(toCol, toRow);
 
-        //impossivel comer peÃ§as da msm cor
         if(pieceAtTarget != null && pieceAtTarget.getColor() == getColor()) return false;
 
         return true;

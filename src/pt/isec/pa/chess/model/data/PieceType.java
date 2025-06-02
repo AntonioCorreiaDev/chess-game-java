@@ -1,8 +1,6 @@
 package pt.isec.pa.chess.model.data;
 
-
 public enum PieceType {
-
     KING {
         @Override
         public Piece createPiece(PieceType type, boolean color, int col, int row) {
@@ -14,6 +12,7 @@ public enum PieceType {
             return new King(color, col, row, hasMoved);
         }
     },
+
     QUEEN {
         @Override
         public Piece createPiece(PieceType type, boolean color, int col, int row) {
@@ -25,6 +24,7 @@ public enum PieceType {
             return new Queen(color, col, row, hasMoved);
         }
     },
+
     BISHOP {
         @Override
         public Piece createPiece(PieceType type, boolean color, int col, int row) {
@@ -36,6 +36,7 @@ public enum PieceType {
             return new Bishop(color, col, row, hasMoved);
         }
     },
+
     KNIGHT {
         @Override
         public Piece createPiece(PieceType type, boolean color, int col, int row) {
@@ -47,6 +48,7 @@ public enum PieceType {
             return new Knight(color, col, row, hasMoved);
         }
     },
+
     ROOK {
         @Override
         public Piece createPiece(PieceType type, boolean color, int col, int row) {
@@ -58,6 +60,7 @@ public enum PieceType {
             return new Rook(color, col, row, hasMoved);
         }
     },
+
     PAWN {
         @Override
         public Piece createPiece(PieceType type, boolean color, int col, int row) {
@@ -70,6 +73,7 @@ public enum PieceType {
     };
 
     public abstract Piece createPiece(PieceType type, boolean color, int col, int row);
+
     public abstract Piece createPiece(PieceType type, boolean color, int col, int row, boolean hasMoved);
 
     public static Piece createPieceFromString(String representation) {

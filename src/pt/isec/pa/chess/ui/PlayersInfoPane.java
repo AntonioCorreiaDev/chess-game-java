@@ -4,17 +4,20 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import pt.isec.pa.chess.model.ChessGameManager;
-import pt.isec.pa.chess.model.ModelLog;
-
+import java.util.Objects;
 public class PlayersInfoPane extends VBox {
 
     private final ChessGameManager chessGame;
+
     private final Label player1Label = new Label();
+
     private final Label player2Label = new Label();
+
     private final Label nJogadas = new Label();
+
     private final Label currentPlayerLabel = new Label();
+
     private final Label winnerLabel = new Label();
-    private int jogadas = 0;
 
     public PlayersInfoPane(ChessGameManager chessGame) {
         this.chessGame = chessGame;
@@ -31,16 +34,19 @@ public class PlayersInfoPane extends VBox {
     }
 
     public void update() {
-        player1Label.setText("Player 1: " + chessGame.getPlayer1());
-        player2Label.setText("Player 2: " + chessGame.getPlayer2());
-        nJogadas.setText("Jogada: " + jogadas);
+        player1Label.setText("WHITE: " + chessGame.getPlayer1());
+        player2Label.setText("BLACK: " + chessGame.getPlayer2());
+        nJogadas.setText("Jogada: " + chessGame.getJogadas());
         currentPlayerLabel.setText("Current Player: " + chessGame.getCurrentPlayer());
 
-        if (chessGame.getWinner() != null) {
+        if (Objects.equals(chessGame.getWinner(), "CHECK")){
+            winnerLabel.setText("CHECK!");
+        }else if(Objects.equals(chessGame.getWinner(), "EMPATE")){
+            winnerLabel.setText("Empate!");
+        }else if (chessGame.getWinner() != null) {
             winnerLabel.setText("WINNER: " + chessGame.getWinner());
         }else{
             winnerLabel.setText("EM JOGO");
-            jogadas ++;
         }
     }
 
@@ -48,11 +54,6 @@ public class PlayersInfoPane extends VBox {
         chessGame.addPropertyChangeListener(ChessGameManager.CURRENT_PLAYER, evt -> {
           update();
         });
-    }
-
-    public void reset() {
-        jogadas = 0;
-        update();
     }
 }
 

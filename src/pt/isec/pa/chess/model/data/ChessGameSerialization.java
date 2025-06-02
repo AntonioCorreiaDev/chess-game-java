@@ -2,6 +2,7 @@ package pt.isec.pa.chess.model.data;
 import java.io.*;
 
 public class ChessGameSerialization {
+
     private ChessGameSerialization() {
         // Impede a instanciação da classe
         throw new AssertionError("This class cannot be instantiated");

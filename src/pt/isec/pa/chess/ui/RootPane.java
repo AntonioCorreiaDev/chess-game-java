@@ -1,27 +1,27 @@
 package pt.isec.pa.chess.ui;
 
 import javafx.application.Platform;
-import javafx.geometry.Insets;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import pt.isec.pa.chess.model.ChessGameManager;
 import pt.isec.pa.chess.model.ModelLog;
 import pt.isec.pa.chess.ui.res.SoundManager;
-
 import java.io.File;
 
 public class RootPane extends BorderPane {
 
     ChessGameManager chessGame;
-    ChessBoardJFX chessBoard;
-    Menu mnGame, mnMode, mnSound;
-    MenuItem mnNew, mnOpen, mnSave, mnImport, mnExport, mnQuit, mnNormal, mnUndo, mnRedo;
-    CheckMenuItem mnLearning, mnShowPM, mnSoundToggle;
-    private PlayersInfoPane playersInfoPane;
 
+    ChessBoardJFX chessBoard;
+
+    // Menus
+    Menu mnGame, mnMode, mnSound;
+    MenuItem mnNew, mnOpen, mnSave, mnImport, mnExport, mnQuit, mnUndo, mnRedo;
+    CheckMenuItem mnLearning, mnShowPM, mnSoundToggle;
+
+    private final PlayersInfoPane playersInfoPane;
 
     public RootPane(ChessGameManager data) {
         this.chessGame = data;
@@ -61,14 +61,13 @@ public class RootPane extends BorderPane {
         mnQuit = new MenuItem("E_xit");
         mnGame.getItems().addAll(mnNew,mnOpen,mnSave,mnImport, mnExport,new SeparatorMenuItem(),mnQuit);
 
-        mnNormal = new MenuItem("Normal Mode");
         mnLearning = new CheckMenuItem("Learning Mode");
         mnShowPM = new CheckMenuItem("Show Possible Moves");
         mnUndo = new MenuItem("Undo");
         mnRedo = new MenuItem("Redo");
 
         mnMode = new Menu("Mode");
-        mnMode.getItems().addAll(mnNormal,mnLearning, new SeparatorMenuItem(), mnShowPM, mnUndo, mnRedo);
+        mnMode.getItems().addAll(mnLearning, new SeparatorMenuItem(), mnShowPM, mnUndo, mnRedo);
 
         mnSound = new Menu("Settings"); // para quando for preciso fazer mais coisas
         mnSoundToggle = new CheckMenuItem("Toggle Sound");
@@ -83,12 +82,11 @@ public class RootPane extends BorderPane {
         mnNew.setOnAction(actionEvent -> {
             AskName askName = new AskName(chessGame);
             askName.showAndWait();
-            chessGame.resetGame();
-            update();
-            chessBoard.update();
-            playersInfoPane.reset();
-            ModelLog.getInstance().clear();
-            ModelLog.getInstance().log("Jogo iniciado!");
+            if(askName.isConfirmed()){
+                chessGame.resetGame();
+                ModelLog.getInstance().clear();
+                ModelLog.getInstance().log("Jogo iniciado!");
+            }
         });
 
         mnQuit.setOnAction(actionEvent -> {
@@ -103,22 +101,16 @@ public class RootPane extends BorderPane {
                 mnShowPM.setSelected(false);
             }
             mnUndo.setDisable(!isSelected);
-            chessGame.setLearningMode(isSelected);
+            chessBoard.setLearningMode(isSelected);
 
             ModelLog.getInstance().log("Learning mode " + (isSelected ? "enabled" : "disabled"));
         });
 
         mnShowPM.setOnAction(actionEvent -> {
             boolean show = mnShowPM.isSelected();
-            chessGame.setShowPossibleMoves(show);
+            chessBoard.setShowPossibleMoves(show);
             chessBoard.update();
             ModelLog.getInstance().log("Show possible moves " + (show ? "enabled" : "disabled"));
-        });
-
-        mnNormal.setOnAction(actionEvent -> {
-            mnRedo.setDisable(true);
-            mnShowPM.setDisable(true);
-            mnUndo.setDisable(true);
         });
 
         mnImport.setOnAction(actionEvent -> {
@@ -127,14 +119,13 @@ public class RootPane extends BorderPane {
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("CSV Files", "*.csv"));
             File file = fileChooser.showOpenDialog(this.getScene().getWindow());
             if (file != null) {
-                chessGame.importGameCsv(file.getAbsolutePath());
                 AskName askName = new AskName(chessGame);
                 askName.showAndWait();
-                update();
-                chessBoard.update();
-                playersInfoPane.reset();
-                ModelLog.getInstance().log("Jogo importado!");
-                ModelLog.getInstance().getLogs();
+                if(askName.isConfirmed()){
+                    chessGame.importGameCsv(file.getAbsolutePath());
+                    ModelLog.getInstance().log("Jogo importado!");
+                    ModelLog.getInstance().getLogs();
+                }
             }
         });
 
@@ -154,10 +145,13 @@ public class RootPane extends BorderPane {
             fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Saved Games", "*.dat"));
             File file = fileChooser.showOpenDialog(this.getScene().getWindow());
             if (file != null) {
-                chessGame.loadGame(file.getAbsolutePath());
-                chessBoard.update();
-                playersInfoPane.reset();
-                ModelLog.getInstance().log("Jogo carregado!");
+                AskName askName = new AskName(chessGame);
+                askName.showAndWait();
+                if(askName.isConfirmed()){
+                    chessGame.loadGame(file.getAbsolutePath());
+                    ModelLog.getInstance().log("Jogo carregado!");
+                    ModelLog.getInstance().getLogs();
+                }
             }
         });
 
@@ -174,11 +168,11 @@ public class RootPane extends BorderPane {
         mnSoundToggle.setOnAction(actionEvent -> {
             if (mnSoundToggle.isSelected()) {
                 System.out.println("Som Ativado");
-                chessGame.setSoundOn(true);
+                chessBoard.setSoundOn(true);
             } else {
                 if(SoundManager.isPlaying())
                     SoundManager.stop();
-                chessGame.setSoundOn(false);
+                chessBoard.setSoundOn(false);
                 System.out.println("Som Desativado");
             }
         });
@@ -192,9 +186,7 @@ public class RootPane extends BorderPane {
         });
     }
 
-
     private void update() {
-        //playersInfoPane.update();
-        //chessBoard.update();
+
     }
 }

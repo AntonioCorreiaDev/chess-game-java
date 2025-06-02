@@ -11,11 +11,13 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import pt.isec.pa.chess.model.ChessGameManager;
 
+import java.util.Objects;
+
 public class AskName extends Stage {
     ChessGameManager chessGameManager;
-
     TextField tfName1, tfName2;
     Button btnConfirm, btnCancel;
+    private boolean confirmed = false;
 
     public AskName(ChessGameManager data) {
         this.chessGameManager=data;
@@ -24,13 +26,14 @@ public class AskName extends Stage {
         registerHandlers();
         update();
     }
+
     private void createViews() {
         tfName1 = new TextField();
         tfName1.setPrefWidth(200);
         tfName2 = new TextField();
         tfName2.setPrefWidth(200);
-        Label lb1 = new Label("Player 1:");
-        Label lb2 = new Label("Player 2:");
+        Label lb1 = new Label("WHITE:");
+        Label lb2 = new Label("BLACK:");
         lb1.setMinWidth(50);
         lb2.setMinWidth(50);
         HBox field1 = new HBox(lb1,tfName1);
@@ -54,13 +57,27 @@ public class AskName extends Stage {
     }
 
     private void registerHandlers() {
-        btnCancel.setOnAction(actionEvent -> this.close());
+        btnCancel.setOnAction(actionEvent -> {
+            confirmed = false;
+            this.close();
+        });
         btnConfirm.setOnAction(actionEvent -> {
             chessGameManager.setPlayersNames(tfName1.getText(), tfName2.getText());
-            this.close();
+            if(!Objects.equals(tfName1.getText(), tfName2.getText())){
+                confirmed = true;
+                this.close();
+            }else{
+                tfName1.clear();
+                tfName2.clear();
+                System.out.println("Os nomes não podem ser iguais");
+            }
         });
     }
 
     private void update() {
+    }
+
+    public boolean isConfirmed() {
+        return confirmed;
     }
 }

@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class SoundManager {
+
+    // Construtor privado para evitar instanciação.
     private SoundManager() { }
 
     private static MediaPlayer mp;
@@ -16,8 +18,6 @@ public class SoundManager {
     public static boolean play(String filename) {
         try {
             var url = SoundManager.class.getResource("/pt/isec/pa/chess/ui/res/sounds/en/" + filename);
-            //System.out.println("Tentando carregar: " + "/pt/isec/pa/chess/ui/res/sounds/br/" + filename);
-            //System.out.println("URL: " + url);
             if (url == null) {
                 System.err.println("Som não encontrado: " + filename);
                 return false;
@@ -77,7 +77,4 @@ public class SoundManager {
             System.err.println("Erro ao tocar som: " + files.get(index));
         }
     }
-
-
-
 }
